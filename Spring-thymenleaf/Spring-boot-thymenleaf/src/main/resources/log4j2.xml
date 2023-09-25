@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration>
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId}/%X{spanId}] [%t] %c{1} [%X{applicationId}]
+                    [%X{ipAddress}] - %m%n
+                </pattern>
+            </PatternLayout>
+        </Console>
+        <!-- fileName="D://AUServicesLogs.log" -->
+        <RollingFile name="RollingFile"
+                     fileName="${env:LOG_PATH}/TCMS.log"
+                     filePattern="${env:LOG_PATH}/TCMS/$${date:yyyy-MM}/TCMS-%d{-dd-MMMM-yyyy}-%i.log">
+            <PatternLayout>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}/%X{spanId}] %-5p %c{1}:%L [%X{applicationId}]
+                    [%X{ipAddress}] - %m%n
+                </pattern>
+            </PatternLayout>
+            <Policies>
+                <!-- rollover on startup, daily and when the file reaches
+                    10 MegaBytes -->
+                <OnStartupTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+        <RollingFile name="springthymenleaf"
+                     fileName="${env:LOG_PATH}/springthymenleaf.log"
+                     filePattern="${env:LOG_PATH}/$${date:yyyy-MM}/system_%d{-dd-MMMM-yyyy}-%i.gz">
+            <JsonLayout complete="false" compact="false">
+            </JsonLayout>
+            <Policies>
+                <!-- rollover on startup, daily and when the file reaches
+                    10 MegaBytes -->
+                <OnStartupTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="2GB" />
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy max="50">
+                <Delete basePath="${env:LOG_PATH}" maxDepth="2">
+                    <IfFileName glob="*/system_*.log.gz" />
+                    <IfLastModified age="P60D" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.hibernate.orm.deprecation" additivity="false" level="WARN">
+            <!-- HHH90000014: Found use of deprecated sequence-based id generator; use org.hibernate.id.enhanced.SequenceStyleGenerator -->
+            <RegexFilter regex=".*HHH90000014.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+
+            <!-- HHH90000022: Hibernate's legacy org.hibernate.Criteria API is deprecated; use the JPA javax.persistence.criteria.CriteriaQuery instead -->
+            <RegexFilter regex=".*HHH90000022.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+        </Logger>
+
+        <Logger name="org.hibernate.boot.internal.InFlightMetadataCollectorImpl" additivity="false" level="WARN">
+            <!-- HHH000069: Duplicate generator name seq_id -->
+            <!-- HHH000069: Duplicate generator name customer_seq -->
+            <RegexFilter regex=".*HHH000069.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+        </Logger>
+        <Root level="info" additivity="false" includeLocation="true">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Root>
+        <Logger name="RollingFile" level="info" additivity="false" includeLocation="true">
+            <AppenderRef ref="RollingFile" level="info"/>
+            <AppenderRef ref="console" level="info"/>
+        </Logger>
+        <Logger name="systemlogger" level="info" additivity="false" includeLocation="true" >
+            <AppenderRef ref="systemlogger"/>
+        </Logger>
+
+        <Logger name="applicationlogger" level="info" additivity="false" includeLocation="true" >
+            <AppenderRef ref="applicationlogger"/>
+        </Logger>
+        <Logger name="springthymenleaf" level="info" additivity="false" includeLocation="true" >
+            <AppenderRef ref="springthymenleaf"/>
+            <AppenderRef ref="console" level="info" />
+        </Logger>
+    </Loggers>
+</Configuration>
